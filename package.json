@@ -1,0 +1,14 @@
+{
+  "name": "simplyproxy",
+  "version": "1.0.0",
+  "description": "provide simply proxy features, like forward & reverse proxies, http proxy...",
+  "main": "test.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "bartmao",
+  "license": "ISC",
+  "dependencies": {
+    "node-uuid": "^1.4.7"
+  }
+}
