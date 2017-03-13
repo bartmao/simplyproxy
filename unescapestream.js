@@ -14,6 +14,7 @@ function UnescapeStream() {
         this.localPort = 0; //4
         this.remotePort = 0; // 4
         this.len = 0;//4
+        this.cmd = null;
 
         this.buffer = new Buffer(16);
         this.state = 0;
@@ -82,15 +83,20 @@ UnescapeStream.prototype._transform = function (chunk, enc, cb) {
             }
         }
         else {
+            console.log(`unescape stream. remote:${this.remoteSocket}:local:${this.localSocket}`);
+
             var lenToRead = this.len - this.pos;
             var lenRemains = chunk.length - i;
             if (lenToRead > lenRemains) {
-                this.push(chunk.slice(i));
+                var data = chunk(slice(i));
+                // Bug, Need buffer it.
+                this.push(data);
                 cb();
                 break;
             }
             else {
-                this.push(chunk.slice(i, lenToRead + i));
+                var data = chunk.slice(i, lenToRead + i);
+                this.push(data);
                 cb();
                 this.init();
                 i += lenToRead;

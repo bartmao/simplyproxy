@@ -13,11 +13,15 @@ function ProxyClient(cb) {
     var instance = this;
 
     var lrSocket = net.createConnection({
-        port: 10086
+        port: 10086,
+        allowHalfOpen: true
     }, () => {
         console.log('connected');
         lrSocket.write(JSON.stringify(config), 'utf8');
+    });
 
+    lrSocket.on('error', err => {
+        console.log('lrSocket');
     });
 
     lrSocket.on('data', data => {
@@ -53,12 +57,20 @@ function ProxyClient(cb) {
 
                 var remoteUUIDBuf = Buffer.alloc(16);
                 uuid.parse(remoteSocket, remoteUUIDBuf);
+                localSocket.on('close', haderr => {
+                    localSocket.unpipe();
+                    delete instance.localSockets[localId];
+                });
+                localSocket.on('error', err => {
+                    console.log('localSocket');
+                });
+                // directly pipe to lrSocket may cause lrSocket ended unexpectly.
                 localSocket.pipe(new EscapeStream({
                     remoteSocket: remoteUUIDBuf,
                     localSocket: uuidBuf,
                     remotePort: remotePort,
                     localPort: localPort
-                })).pipe(lrSocket);
+                })).on('data', data=> lrSocket.write(data));
                 cb(localSocket);
             });
         }

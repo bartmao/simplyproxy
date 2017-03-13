@@ -10,13 +10,23 @@ var echo = net.createServer(s => {
 }).listen(8000);
 
 var remote = new ProxyServer();
+
 var local = new ProxyClient(() => {
-    var client = net.createConnection({ port: 8002 }, () => {
-        client.write('my test');
-        client.on('data',data=>{
-            console.log(data.toString('utf8'));
-        });
-    });
+    console.log('connected');
+    ping();
 });
 
+function ping(){
+    echoMsg(new Date().toTimeString());
+}
 
+function echoMsg(msg) {
+    var client = net.createConnection({ port: 8002 }, () => {
+        client.write(msg);
+        client.on('data', data => {
+            console.log('From server:' + data.toString('utf8'));
+            client.end();
+            setTimeout(ping, 1000);
+        });
+    });
+}

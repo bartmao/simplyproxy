@@ -61,17 +61,29 @@ function ProxyServer() {
                 uuid.v4(null, uuidBuf);
                 var remoteId = uuid.unparse(uuidBuf);
                 instance.remoteSockets[remoteId] = remoteSocket;
-                remoteSocket.pipe(new EscapeStream({
+                var escapestream = new EscapeStream({
                     remoteSocket: uuidBuf,
                     localSocket: null,
                     remotePort: port,
                     localPort: entry.lp
-                })).pipe(lrSocket);
+                });
+                console.log(`remote socket ${remoteId} established`);
+                remoteSocket.on('close', haderr => {
+                    remoteSocket.unpipe(escapestream);
+                    // end exception
+                    //escapestream.write(Command['DELETELS']);
+                    delete instance.remoteSockets[remoteId];
+                    console.log(`Remote socket ${remoteId} closed`);
+                });
+                // directly pipe to lrSocket may cause lrSocket ended unexpectly.
+                remoteSocket.pipe(escapestream).on('data', data=> lrSocket.write(data));
             }).listen(port);
 
             entry.srv = srv;
         }
     }).listen(10086);
 }
+
+
 
 module.exports = ProxyServer;
